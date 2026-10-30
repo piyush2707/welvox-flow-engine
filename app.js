@@ -226,19 +226,8 @@ document.addEventListener("click", function (event) {
 ------------------------------ */
 
 function createNewWorkflow() {
-  currentDraft = {
-    id: makeId(),
-    name: "Untitled workflow",
-    description: "",
-    steps: [
-      makeStep("trigger", "Workflow started", "Define what starts this workflow."),
-      makeStep("action", "First action", "Describe the action to perform.")
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
-
-  openBuilder();
+  window.location.href = "builder.html";
+  
 }
 
 function createFromTemplate(templateKey) {
@@ -418,8 +407,9 @@ function openWorkflow(workflowId) {
     return;
   }
 
-  currentDraft = JSON.parse(JSON.stringify(workflow));
-  openBuilder();
+  window.location.href =
+    "builder.html?id=" + encodeURIComponent(workflowId);
+
 }
 
 function deleteWorkflow(workflowId) {
