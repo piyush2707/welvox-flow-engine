@@ -646,9 +646,14 @@ document.getElementById("generateButton").addEventListener("click", function () 
   openBuilder();
 });
 
-document.getElementById("profileButton").addEventListener("click", function () {
-  showToast("Welvox Flow Engine · Local browser workspace · V0.1.0");
-});
+const manualButton = document.getElementById("manualButton");
+
+if (manualButton) {
+  manualButton.addEventListener("click", function () {
+    window.location.href = "builder.html";
+ 
+  });
+
 
 /* ------------------------------
    START APPLICATION
