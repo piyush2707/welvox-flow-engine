@@ -10,6 +10,11 @@ Welvox Flow Engine is a visual workflow-building project designed to make automa
   <em>Visual Workflow Builder · Mobile-Friendly Interface</em>
 </p>---
 
+
+<p align="center">
+  <img src="welvox-flow.png" 
+    </p>
+
 ✨ Overview
 
 Welvox Flow Engine aims to make workflow creation accessible through a visual, easy-to-use workspace.
