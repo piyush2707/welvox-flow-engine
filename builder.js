@@ -24,6 +24,7 @@
   let selectedId = null;
   let workflowId = null;
   let createdAt = new Date().toISOString();
+  let description = "Created with the visual workflow builder.";
   let zoom = 100;
   let drag = null;
   let toastTimer;
@@ -85,21 +86,26 @@
       item => item.id === requestedId
     );
 
-    if (!workflow || !Array.isArray(workflow.steps)) return;
+    if (!workflow || !Array.isArray(workflow.steps)) {
+      toast("Workflow not found. Starting a new one.");
+      return;
+    }
 
     workflowId = workflow.id;
     createdAt = workflow.createdAt || createdAt;
+    if (workflow.description) description = workflow.description;
 
     const nameInput = $("workflowName");
     if (nameInput) nameInput.value = workflow.name || "";
 
     nodes = workflow.steps.map((step, index) => ({
       id: step.id || id(),
-      type: presets[step.type] ? step.type : "action",
+      type: presets[step.nodeType] ? step.nodeType
+        : presets[step.type] ? step.type : "action",
       title: step.title || "New step",
       description: step.detail || "",
-      x: 170,
-      y: 45 + index * 155
+      x: Number.isFinite(step.x) ? step.x : 170,
+      y: Number.isFinite(step.y) ? step.y : 45 + index * 155
     }));
   }
 
@@ -139,6 +145,7 @@
     nodes.forEach(node => {
       const card = create("button", "flow-node");
       card.type = "button";
+      card.style.touchAction = "none";
       card.dataset.id = node.id;
       card.style.left = node.x + "px";
       card.style.top = node.y + "px";
@@ -350,12 +357,15 @@
     const workflow = {
       id: workflowId || id(),
       name,
-      description: "Created with the visual workflow builder.",
+      description,
       steps: nodes.map(node => ({
         id: node.id,
         type: node.type === "condition" ? "action" : node.type,
         title: node.title,
-        detail: node.description
+        detail: node.description,
+        nodeType: node.type,
+        x: Math.round(node.x),
+        y: Math.round(node.y)
       })),
       createdAt,
       updatedAt: new Date().toISOString()
