@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111312">
+  <meta name="description" content="Welvox Flow Engine — design, automate and execute workflows.">
+  <title>Welvox Flow Engine</title>
+  <link rel="icon" href="assets/welvox-symbol.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="assets/welvox-symbol.png" alt="Welvox" class="brand-symbol">
+        <img src="assets/welvox-wordmark.png" alt="welvox" class="brand-wordmark">
+        <span class="brand-product">FLOW ENGINE</span>
+      </div>
+
+      <button class="nav-item active" data-view="dashboard">⌂ <span>Dashboard</span></button>
+      <button class="nav-item" data-view="workflows">◇ <span>My workflows</span></button>
+      <button class="nav-item" data-view="templates">▦ <span>Templates</span></button>
+      <button class="nav-item" data-view="activity">◷ <span>Execution history</span></button>
+
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span>
+        <span>Engine not connected</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" id="menuButton" aria-label="Toggle menu">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> Dashboard</div>
+        <div class="top-actions">
+          <span class="version">V0.1.0</span>
+          <div class="avatar">W</div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="welcome">
+          <div>
+            <p class="eyebrow">YOUR AUTOMATION WORKSPACE</p>
+            <h1>Build something<br>that <span>flows.</span></h1>
+            <p class="subtitle">Design, automate and execute workflows from one workspace.</p>
+          </div>
+          <div class="welcome-mark">
+            <img src="assets/welvox-symbol.png" alt="">
+          </div>
+        </div>
+
+        <section class="create-card">
+          <div class="create-copy">
+            <span class="eyebrow dark">START BUILDING</span>
+            <h2>What do you want to automate?</h2>
+            <p>Describe a process and turn it into an editable workflow draft.</p>
+          </div>
+          <textarea id="promptInput" placeholder="Example: When a file is uploaded, check its type, organize it, and create a report..." rows="3"></textarea>
+          <div class="create-footer">
+            <span class="hint">AI is optional. You can also build manually.</span>
+            <button class="primary-button" id="generateButton">Generate workflow <span>↗</span></button>
+          </div>
+          <p class="message" id="promptMessage" aria-live="polite"></p>
+        </section>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">YOUR WORKSPACE</p>
+            <h2>Get started</h2>
+          </div>
+          <button class="text-button" id="newWorkflowButton">+ New workflow</button>
+        </div>
+
+        <div class="action-grid">
+          <button class="action-card" id="manualButton">
+            <span class="card-icon">◇</span>
+            <strong>Build manually</strong>
+            <span>Start with a blank workflow canvas.</span>
+            <b>Start building ↗</b>
+          </button>
+          <button class="action-card" id="templatesButton">
+            <span class="card-icon">▦</span>
+            <strong>Explore templates</strong>
+            <span>Use a ready-made workflow as a starting point.</span>
+            <b>Browse templates ↗</b>
+          </button>
+          <button class="action-card" id="projectsButton">
+            <span class="card-icon">▤</span>
+            <strong>My workflows</strong>
+            <span>Return to your saved workflow projects.</span>
+            <b>Open workflows ↗</b>
+          </button>
+        </div>
+
+        <section class="recent-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">WORKSPACE OVERVIEW</p>
+              <h2>Recent activity</h2>
+            </div>
+            <span class="muted" id="workflowCount">0 workflows</span>
+          </div>
+          <div class="empty-state">
+            <span class="empty-icon">⌁</span>
+            <strong>Your next workflow starts here.</strong>
+            <p>Workflows you create will appear in this space.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
