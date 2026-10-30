@@ -18,7 +18,20 @@ const promptInput = document.getElementById("promptInput");
 const promptMessage = document.getElementById("promptMessage");
 
 menuButton.addEventListener("click", () => {
-  sidebar.classList.toggle("open");
+  if (sidebar.classList.contains("open")) {
+    closeSidebar();
+  } else {
+    openSidebar();
+  }
+});
+
+sidebarBackdrop.addEventListener("click", closeSidebar);
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeSidebar();
+  }
+});
 });
 
 function showMessage(message) {
