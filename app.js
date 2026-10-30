@@ -226,8 +226,18 @@ document.addEventListener("click", function (event) {
 ------------------------------ */
 
 function createNewWorkflow() {
-  window.location.href = "builder.html";
-  
+  currentDraft = {
+    id: makeId(),
+    name: "",
+    description: "",
+    steps: [
+      makeStep("trigger", "Start workflow", "Define when this process begins.")
+    ],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  openBuilder();
 }
 
 function createFromTemplate(templateKey) {
@@ -407,9 +417,9 @@ function openWorkflow(workflowId) {
     return;
   }
 
-  window.location.href =
-    "builder.html?id=" + encodeURIComponent(workflowId);
-
+  currentDraft = JSON.parse(JSON.stringify(workflow));
+  openBuilder();
+  document.getElementById("builderStatus").textContent = "Saved";
 }
 
 function deleteWorkflow(workflowId) {
@@ -650,28 +660,13 @@ const manualButton = document.getElementById("manualButton");
 
 if (manualButton) {
   manualButton.addEventListener("click", function () {
-    window.location.href = "builder.html";
+    createNewWorkflow();
   });
 }
 
 document.getElementById("profileButton").addEventListener("click", function () {
   showToast("Welvox Flow Engine · Local browser workspace · V0.1.0");
 });
-
-/* ------------------------------
-   START APPLICATION
------------------------------- */
-
-loadData();
-renderDashboard();
-renderWorkflows();
-renderActivity();
-closeSidebar();
-setView("dashboard");
-
- 
-  });
-
 
 /* ------------------------------
    START APPLICATION
