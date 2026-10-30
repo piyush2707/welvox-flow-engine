@@ -1,6 +1,19 @@
 
 const menuButton = document.getElementById("menuButton");
 const sidebar = document.getElementById("sidebar");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+
+function openSidebar() {
+  sidebar.classList.add("open");
+  sidebarBackdrop.classList.add("active");
+  menuButton.setAttribute("aria-expanded", "true");
+}
+
+function closeSidebar() {
+  sidebar.classList.remove("open");
+  sidebarBackdrop.classList.remove("active");
+  menuButton.setAttribute("aria-expanded", "false");
+}
 const promptInput = document.getElementById("promptInput");
 const promptMessage = document.getElementById("promptMessage");
 
