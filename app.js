@@ -651,6 +651,24 @@ const manualButton = document.getElementById("manualButton");
 if (manualButton) {
   manualButton.addEventListener("click", function () {
     window.location.href = "builder.html";
+  });
+}
+
+document.getElementById("profileButton").addEventListener("click", function () {
+  showToast("Welvox Flow Engine · Local browser workspace · V0.1.0");
+});
+
+/* ------------------------------
+   START APPLICATION
+------------------------------ */
+
+loadData();
+renderDashboard();
+renderWorkflows();
+renderActivity();
+closeSidebar();
+setView("dashboard");
+
  
   });
 
