@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111312">
+  <title>Workflow Builder | Welvox</title>
+  <link rel="icon" href="assets/welvox-symbol.png">
+  <link rel="stylesheet" href="builder.css">
+</head>
+<body>
+  <header class="builder-topbar">
+    <a class="brand" href="index.html">
+      <img src="assets/welvox-symbol.png" alt="Welvox">
+      <span>WELVOX <b>FLOW ENGINE</b></span>
+    </a>
+    <div class="top-center">
+      <span class="live-dot"></span>
+      <span>VISUAL WORKSPACE</span>
+    </div>
+    <div class="top-actions">
+      <button id="saveButton" class="save-button">Save workflow</button>
+    </div>
+  </header>
+
+  <main class="builder-layout">
+    <aside class="tool-panel">
+      <a class="back-link" href="index.html">← Back to dashboard</a>
+      <div class="panel-heading">
+        <span class="eyebrow">WORKFLOW DESIGNER</span>
+        <h2>Build your flow.</h2>
+        <p>Add blocks to your canvas. Select any block to configure it.</p>
+      </div>
+
+      <label class="field-label" for="workflowName">WORKFLOW NAME</label>
+      <input id="workflowName" class="name-input" value="Untitled workflow">
+
+      <div class="library-heading">
+        <span class="eyebrow">BLOCK LIBRARY</span>
+        <span class="block-count">4 BLOCKS</span>
+      </div>
+
+      <button class="block-option" data-add="trigger">
+        <span class="block-icon trigger-icon">▶</span>
+        <span><b>Trigger</b><small>Start your workflow</small></span>
+        <strong>+</strong>
+      </button>
+      <button class="block-option" data-add="action">
+        <span class="block-icon action-icon">⚡</span>
+        <span><b>Action</b><small>Perform a task</small></span>
+        <strong>+</strong>
+      </button>
+      <button class="block-option" data-add="condition">
+        <span class="block-icon condition-icon">◇</span>
+        <span><b>Condition</b><small>Check a rule</small></span>
+        <strong>+</strong>
+      </button>
+      <button class="block-option" data-add="output">
+        <span class="block-icon output-icon">◎</span>
+        <span><b>Output</b><small>Finish the flow</small></span>
+        <strong>+</strong>
+      </button>
+
+      <div class="panel-tip">
+        <span>✳</span>
+        <div><b>Builder tip</b><p>Start with a trigger, add actions, then finish with an output.</p></div>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <div class="canvas-toolbar">
+        <div>
+          <span class="eyebrow">CANVAS /</span>
+          <strong id="canvasTitle">Untitled workflow</strong>
+        </div>
+        <div class="canvas-actions">
+          <button id="zoomOut" aria-label="Zoom out">−</button>
+          <span id="zoomLabel">100%</span>
+          <button id="zoomIn" aria-label="Zoom in">+</button>
+          <button id="clearButton" class="clear-button">Clear</button>
+        </div>
+      </div>
+
+      <div class="canvas-scroll" id="canvasScroll">
+        <div class="canvas" id="canvas">
+          <svg class="connections" id="connections"></svg>
+          <div class="canvas-empty" id="canvasEmpty">
+            <span class="empty-symbol">✳</span>
+            <h3>Your canvas is waiting.</h3>
+            <p>Add your first block from the library to begin.</p>
+            <button id="firstBlockButton">+ Add trigger</button>
+          </div>
+          <div class="node-layer" id="nodeLayer"></div>
+        </div>
+      </div>
+
+      <div class="canvas-footer">
+        <span><i></i> All changes are local until saved</span>
+        <span id="stepCount">0 STEPS</span>
+      </div>
+    </section>
+
+    <aside class="properties-panel" id="propertiesPanel">
+      <div class="properties-heading">
+        <span class="eyebrow">CONFIGURATION</span>
+        <h3>Block settings</h3>
+      </div>
+      <div id="propertiesContent" class="properties-content">
+        <div class="property-empty">
+          <span>◇</span>
+          <b>Select a block</b>
+          <p>Choose a block on the canvas to view and edit its settings.</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="builder.js"></script>
+</body>
+</html>
