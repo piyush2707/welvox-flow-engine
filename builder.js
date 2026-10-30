@@ -2,6 +2,7 @@
 (() => {
   "use strict";
 
+  const STORAGE_KEY = "welvox-flow-engine-v1";
   const canvas = document.getElementById("canvas");
   const nodeLayer = document.getElementById("nodeLayer");
   const connections = document.getElementById("connections");
@@ -10,133 +11,151 @@
 
   if (!canvas || !nodeLayer || !properties) return;
 
-  const STORAGE_KEY = "welvox-flow-builder-v1";
+  const $ = id => document.getElementById(id);
 
-  const defaults = {
-    trigger: {
-      title: "Workflow trigger",
-      description: "Starts this workflow"
-    },
-    action: {
-      title: "New action",
-      description: "Configure the task to perform"
-    },
-    condition: {
-      title: "Check condition",
-      description: "Define a rule to evaluate"
-    },
-    output: {
-      title: "Workflow output",
-      description: "Return or finish the result"
-    }
+  const presets = {
+    trigger: ["Workflow trigger", "Starts this workflow"],
+    action: ["New action", "Configure the task to perform"],
+    condition: ["Check condition", "Define a rule to evaluate"],
+    output: ["Workflow output", "Return or finish the result"]
   };
 
   let nodes = [];
   let selectedId = null;
+  let workflowId = null;
+  let createdAt = new Date().toISOString();
   let zoom = 100;
   let drag = null;
+  let toastTimer;
 
-  const $ = (id) => document.getElementById(id);
-
-  function makeId() {
-    return "node-" + Date.now() + "-" +
-      Math.floor(Math.random() * 100000);
+  function id() {
+    return "wf-" + Date.now().toString(36) +
+      Math.random().toString(36).slice(2, 7);
   }
 
-  function showToast(message) {
-    const toast = $("toast");
-    if (!toast) return;
+  function toast(message) {
+    const element = $("toast");
+    if (!element) return;
 
-    toast.textContent = message;
-    toast.classList.add("show");
+    element.textContent = message;
+    element.classList.add("show");
 
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => {
-      toast.classList.remove("show");
-    }, 2400);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(
+      () => element.classList.remove("show"),
+      2500
+    );
   }
 
-  function getCanvasWidth() {
-    return Math.max(canvas.scrollWidth, canvas.clientWidth);
+  function readStore() {
+    try {
+      const data = JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "{}"
+      );
+
+      return {
+        workflows: Array.isArray(data.workflows)
+          ? data.workflows : [],
+        history: Array.isArray(data.history)
+          ? data.history : []
+      };
+    } catch (error) {
+      return { workflows: [], history: [] };
+    }
+  }
+
+  function writeStore(data) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    } catch (error) {
+      toast("Could not save browser data.");
+      return false;
+    }
+  }
+
+  function loadExisting() {
+    const params = new URLSearchParams(location.search);
+    const requestedId = params.get("id");
+    const store = readStore();
+
+    if (!requestedId) return;
+
+    const workflow = store.workflows.find(
+      item => item.id === requestedId
+    );
+
+    if (!workflow || !Array.isArray(workflow.steps)) return;
+
+    workflowId = workflow.id;
+    createdAt = workflow.createdAt || createdAt;
+
+    const nameInput = $("workflowName");
+    if (nameInput) nameInput.value = workflow.name || "";
+
+    nodes = workflow.steps.map((step, index) => ({
+      id: step.id || id(),
+      type: presets[step.type] ? step.type : "action",
+      title: step.title || "New step",
+      description: step.detail || "",
+      x: 170,
+      y: 45 + index * 155
+    }));
+  }
+
+  function create(tag, className, content) {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    if (content !== undefined) element.textContent = content;
+    return element;
   }
 
   function addNode(type) {
-    const preset = defaults[type];
-    if (!preset) return;
+    if (!presets[type]) return;
 
     const index = nodes.length;
-    const width = getCanvasWidth();
 
-    const node = {
-      id: makeId(),
+    nodes.push({
+      id: id(),
       type,
-      title: preset.title,
-      description: preset.description,
-      x: Math.max(24, Math.round((width - 220) / 2)),
+      title: presets[type][0],
+      description: presets[type][1],
+      x: Math.max(24, (canvas.clientWidth - 220) / 2),
       y: 45 + index * 155
-    };
+    });
 
-    nodes.push(node);
-    selectedId = node.id;
-
+    selectedId = nodes[nodes.length - 1].id;
     render();
-    showToast("Block added");
-  }
-
-  function createElement(tag, className, text) {
-    const element = document.createElement(tag);
-
-    if (className) element.className = className;
-    if (text !== undefined) element.textContent = text;
-
-    return element;
+    toast("Block added");
   }
 
   function render() {
     nodeLayer.replaceChildren();
 
     if (emptyState) {
-      emptyState.style.display =
-        nodes.length ? "none" : "";
+      emptyState.style.display = nodes.length ? "none" : "";
     }
 
-    nodes.forEach((node, index) => {
-      const card = createElement("button", "flow-node");
+    nodes.forEach(node => {
+      const card = create("button", "flow-node");
       card.type = "button";
+      card.dataset.id = node.id;
       card.style.left = node.x + "px";
       card.style.top = node.y + "px";
-      card.dataset.id = node.id;
-      card.classList.toggle(
-        "selected",
-        node.id === selectedId
-      );
+      card.classList.toggle("selected", node.id === selectedId);
 
-      const type = createElement(
-        "span",
-        "node-type",
-        node.type.toUpperCase()
+      card.append(
+        create("span", "node-type", node.type.toUpperCase()),
+        create("strong", "node-title", node.title),
+        create("span", "node-description", node.description)
       );
-
-      const title = createElement(
-        "strong",
-        "node-title",
-        node.title
-      );
-
-      const description = createElement(
-        "span",
-        "node-description",
-        node.description
-      );
-
-      card.append(type, title, description);
 
       card.addEventListener("click", () => {
         selectedId = node.id;
         render();
       });
 
-      card.addEventListener("pointerdown", (event) => {
+      card.addEventListener("pointerdown", event => {
         if (event.button !== 0) return;
 
         selectedId = node.id;
@@ -145,8 +164,8 @@
           id: node.id,
           startX: event.clientX,
           startY: event.clientY,
-          originalX: node.x,
-          originalY: node.y,
+          x: node.x,
+          y: node.y,
           moved: false
         };
 
@@ -154,13 +173,11 @@
         renderProperties();
       });
 
-      card.addEventListener("pointermove", (event) => {
+      card.addEventListener("pointermove", event => {
         if (!drag || drag.id !== node.id) return;
 
-        const dx = (event.clientX - drag.startX) /
-          (zoom / 100);
-        const dy = (event.clientY - drag.startY) /
-          (zoom / 100);
+        const dx = (event.clientX - drag.startX) / (zoom / 100);
+        const dy = (event.clientY - drag.startY) / (zoom / 100);
 
         if (Math.abs(dx) + Math.abs(dy) > 3) {
           drag.moved = true;
@@ -168,8 +185,8 @@
 
         if (!drag.moved) return;
 
-        node.x = Math.max(0, drag.originalX + dx);
-        node.y = Math.max(0, drag.originalY + dy);
+        node.x = Math.max(0, drag.x + dx);
+        node.y = Math.max(0, drag.y + dy);
 
         card.style.left = node.x + "px";
         card.style.top = node.y + "px";
@@ -200,74 +217,50 @@
     renderProperties();
     drawConnections();
     updateCount();
+    updateTitle();
   }
 
   function renderProperties() {
     properties.replaceChildren();
 
-    const node = nodes.find(
-      item => item.id === selectedId
-    );
+    const node = nodes.find(item => item.id === selectedId);
 
     if (!node) {
       properties.appendChild(
-        createElement(
-          "p",
-          "property-empty",
-          "Select a block to edit its settings."
-        )
+        create("p", "property-empty", "Select a block to edit its settings.")
       );
       return;
     }
 
-    const titleLabel = createElement(
-      "label",
-      "",
-      "BLOCK NAME"
-    );
-
-    const titleInput = createElement("input");
-    titleInput.type = "text";
+    const titleLabel = create("label", "", "BLOCK NAME");
+    const titleInput = create("input");
     titleInput.value = node.title;
-    titleInput.maxLength = 80;
+    titleInput.maxLength = 100;
 
     titleInput.addEventListener("input", () => {
       node.title = titleInput.value;
-      updateNodeText(node);
-      updateCanvasTitle();
+      updateNode(node);
     });
 
-    const descriptionLabel = createElement(
-      "label",
-      "",
-      "DESCRIPTION"
-    );
-
-    const descriptionInput = createElement("textarea");
+    const descriptionLabel = create("label", "", "DESCRIPTION");
+    const descriptionInput = create("textarea");
     descriptionInput.value = node.description;
-    descriptionInput.maxLength = 240;
+    descriptionInput.maxLength = 500;
     descriptionInput.rows = 4;
 
     descriptionInput.addEventListener("input", () => {
       node.description = descriptionInput.value;
-      updateNodeText(node);
+      updateNode(node);
     });
 
-    const deleteButton = createElement(
-      "button",
-      "delete-node",
-      "Delete block"
-    );
+    const deleteButton = create("button", "delete-node", "Delete block");
     deleteButton.type = "button";
 
     deleteButton.addEventListener("click", () => {
-      nodes = nodes.filter(
-        item => item.id !== selectedId
-      );
-
+      nodes = nodes.filter(item => item.id !== selectedId);
       selectedId = null;
       render();
-      showToast("Block deleted");
+      toast("Block deleted");
     });
 
     properties.append(
@@ -279,22 +272,16 @@
     );
   }
 
-  function updateNodeText(node) {
+  function updateNode(node) {
     const card = nodeLayer.querySelector(
       `[data-id="${node.id}"]`
     );
 
     if (!card) return;
 
-    const title = card.querySelector(".node-title");
-    const description = card.querySelector(
-      ".node-description"
-    );
-
-    if (title) title.textContent = node.title;
-    if (description) {
-      description.textContent = node.description;
-    }
+    card.querySelector(".node-title").textContent = node.title;
+    card.querySelector(".node-description").textContent =
+      node.description;
   }
 
   function drawConnections() {
@@ -307,23 +294,17 @@
     nodes.slice(0, -1).forEach((node, index) => {
       const next = nodes[index + 1];
 
+      const path = document.createElementNS(ns, "path");
       const x1 = node.x + 105;
       const y1 = node.y + 88;
       const x2 = next.x + 105;
       const y2 = next.y;
-
-      const path = document.createElementNS(
-        ns,
-        "path"
-      );
-
       const middle = (y1 + y2) / 2;
 
       path.setAttribute(
         "d",
         `M ${x1} ${y1} C ${x1} ${middle}, ${x2} ${middle}, ${x2} ${y2}`
       );
-
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", "#c8ff00");
       path.setAttribute("stroke-width", "2");
@@ -331,90 +312,74 @@
       connections.appendChild(path);
     });
 
-    connections.setAttribute(
-      "width",
-      Math.max(canvas.scrollWidth, 570)
-    );
-
-    connections.setAttribute(
-      "height",
-      Math.max(canvas.scrollHeight, 800)
-    );
+    connections.setAttribute("width", Math.max(canvas.scrollWidth, 570));
+    connections.setAttribute("height", Math.max(canvas.scrollHeight, 800));
   }
 
-  function updateCanvasTitle() {
+  function updateTitle() {
     const input = $("workflowName");
     const title = $("canvasTitle");
 
     if (input && title) {
-      title.textContent =
-        input.value.trim() || "Untitled workflow";
+      title.textContent = input.value.trim() || "Untitled workflow";
     }
   }
 
   function updateCount() {
     const count = $("blockCount");
-
-    if (count) {
-      count.textContent = nodes.length + " blocks";
-    }
+    if (count) count.textContent = nodes.length + " blocks";
   }
 
   function saveWorkflow() {
     const input = $("workflowName");
+    const name = input ? input.value.trim() : "";
+
+    if (!name) {
+      toast("Enter a workflow name first.");
+      if (input) input.focus();
+      return;
+    }
+
+    if (!nodes.length) {
+      toast("Add at least one block first.");
+      return;
+    }
+
+    const store = readStore();
 
     const workflow = {
-      name: input ? input.value.trim() : "Untitled workflow",
-      nodes,
+      id: workflowId || id(),
+      name,
+      description: "Created with the visual workflow builder.",
+      steps: nodes.map(node => ({
+        id: node.id,
+        type: node.type === "condition" ? "action" : node.type,
+        title: node.title,
+        detail: node.description
+      })),
+      createdAt,
       updatedAt: new Date().toISOString()
     };
 
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(workflow)
-      );
+    workflowId = workflow.id;
 
-      showToast("Workflow saved on this device");
-    } catch (error) {
-      showToast("Could not save workflow");
+    const index = store.workflows.findIndex(
+      item => item.id === workflow.id
+    );
+
+    if (index >= 0) {
+      store.workflows[index] = workflow;
+    } else {
+      store.workflows.unshift(workflow);
     }
-  }
 
-  function loadWorkflow() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return;
-
-      const workflow = JSON.parse(saved);
-
-      if (!workflow || !Array.isArray(workflow.nodes)) {
-        return;
-      }
-
-      nodes = workflow.nodes.filter(node =>
-        node &&
-        typeof node.id === "string" &&
-        defaults[node.type] &&
-        Number.isFinite(node.x) &&
-        Number.isFinite(node.y)
-      );
-
-      const input = $("workflowName");
-
-      if (input && typeof workflow.name === "string") {
-        input.value = workflow.name;
-      }
-
-      updateCanvasTitle();
-    } catch (error) {
-      nodes = [];
+    if (writeStore(store)) {
+      toast("Saved to My workflows!");
     }
   }
 
   function changeZoom(amount) {
-    zoom = Math.min(150, Math.max(60, zoom + amount));
-
+    zoom = Math.max(60, Math.min(150, zoom + amount));
     canvas.style.zoom = zoom / 100;
 
     const label = $("zoomLabel");
@@ -422,23 +387,15 @@
   }
 
   document.querySelectorAll("[data-add]").forEach(button => {
-    button.addEventListener("click", () => {
-      addNode(button.dataset.add);
-    });
+    button.addEventListener("click", () => addNode(button.dataset.add));
   });
 
   if ($("firstBlockButton")) {
-    $("firstBlockButton").addEventListener(
-      "click",
-      () => addNode("trigger")
-    );
+    $("firstBlockButton").addEventListener("click", () => addNode("trigger"));
   }
 
   if ($("saveButton")) {
-    $("saveButton").addEventListener(
-      "click",
-      saveWorkflow
-    );
+    $("saveButton").addEventListener("click", saveWorkflow);
   }
 
   if ($("clearButton")) {
@@ -449,33 +406,24 @@
         nodes = [];
         selectedId = null;
         render();
-        showToast("Canvas cleared");
+        toast("Canvas cleared");
       }
     });
   }
 
   if ($("zoomIn")) {
-    $("zoomIn").addEventListener(
-      "click",
-      () => changeZoom(10)
-    );
+    $("zoomIn").addEventListener("click", () => changeZoom(10));
   }
 
   if ($("zoomOut")) {
-    $("zoomOut").addEventListener(
-      "click",
-      () => changeZoom(-10)
-    );
+    $("zoomOut").addEventListener("click", () => changeZoom(-10));
   }
 
   if ($("workflowName")) {
-    $("workflowName").addEventListener(
-      "input",
-      updateCanvasTitle
-    );
+    $("workflowName").addEventListener("input", updateTitle);
   }
 
-  loadWorkflow();
+  loadExisting();
   render();
-  updateCanvasTitle();
+  updateTitle();
 })();
